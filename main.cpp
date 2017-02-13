@@ -28,7 +28,7 @@ MainWindow::MainWindow(QString profile, QWidget *parent) : KMainWindow(parent)
     if (profile != "") {
         firefoxprofile = profile;
         QStringList createProfileCommand;
-        createProfileCommand << firefoxbin_path << "-CreateProfile" << firefoxprofile;
+        createProfileCommand << firefoxbin_path << "-CreateProfile" << firefoxprofile << "-no-remote";
         KProcess::execute(createProfileCommand);
         p << firefoxbin_path << "-P" << firefoxprofile << "-no-remote";
         p.start();
