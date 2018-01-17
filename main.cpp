@@ -61,18 +61,23 @@ void MainWindow::saveProperties(KConfigGroup &conf) {
         conf.writeEntry("binPath", binPath);
 
         // trying to gracefully terminate Firefox by closing the window with wmctrl
-        QStringList closeFirefoxCommand;
         char pid[21];
+        KProcess closeFirefox;
 
         sprintf(pid, "%d", p.pid());
-        std::string arguments = "wmctrl -i -c `wmctrl -lp | grep ";
-        arguments = arguments + pid + " | cut -c -10`";
-        closeFirefoxCommand << arguments.c_str();
+        std::string closeFirefoxCommand = "wmctrl -i -c `wmctrl -lp | grep ";
+        closeFirefoxCommand = closeFirefoxCommand + pid + " | cut -c -10`";
 
-        int exitcode = KProcess::execute(closeFirefoxCommand);
+        closeFirefox.setShellCommand(closeFirefoxCommand.c_str());
+        int exitcode = closeFirefox.execute();
 
-        // if we can't close the window, terminate the process anyway
+        // wmctrl failed, terminate Firefox normally
         if (exitcode != 0) {
+            p.terminate();
+        }
+
+        // wait until Firefox is closed, at most 30 seconds, terminate if wasn't closed after that
+        if (!p.waitForFinished()) {
             p.terminate();
         }
     } else {
@@ -101,7 +106,39 @@ QString MainWindow::getCurrentActivityId() {
     return result.arguments().at(0).value<QString>();
 }
 
+FILE * fp;
+
+
+// for debug purposes
+
+//void myMessageOutput(QtMsgType type, const char *msg)
+//{
+//    switch (type) {
+//        case QtDebugMsg:
+//            fprintf(fp, "Debug: %s\n", msg);
+//            fflush(fp);
+//            break;
+//        case QtWarningMsg:
+//            fprintf(fp, "Warning: %s\n", msg);
+//            fflush(fp);
+//            break;
+//        case QtCriticalMsg:
+//            fprintf(fp, "Critical: %s\n", msg);
+//            fflush(fp);
+//            break;
+//        case QtFatalMsg:
+//            fprintf(fp, "Fatal: %s\n", msg);
+//            fflush(fp);
+//            abort();
+//    }
+//}
+
 int main(int argc, char *argv[]) {
+    // for debug purposes, use qDebug() << "message";
+
+    // fp = fopen("activityfox.log", "a");
+    // qInstallMsgHandler(myMessageOutput);
+
     std::string defaultProfileDir = getenv("HOME");
     defaultProfileDir = defaultProfileDir + '/' + defaultProfileDirTail;
 
@@ -140,5 +177,9 @@ int main(int argc, char *argv[]) {
         window->show();
     }
 
-    return app.exec();
+    int result = app.exec();
+
+    fclose(fp);
+
+    return result;
 }
