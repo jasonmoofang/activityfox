@@ -6,92 +6,86 @@
 #include <KProcess>
 #include <iostream>
 #include <QtDBus>
+#include <sstream>
 
 const char *defaultProfileDirTail = ".mozilla/firefox";
 const char *defaultBinPath = "/usr/lib/firefox/firefox";
 
 class MainWindow : public KMainWindow {
 public:
-    explicit MainWindow(const QString &binPath = nullptr, const QString &profileDir = nullptr,
-                        const QString &templateProfile = nullptr, QString profile = nullptr, QWidget *parent = nullptr);
+    MainWindow(const QString &binPath, const QString &profileDir,
+               const QString &templateProfileName, const QString &profileName);
+
+    MainWindow();
 
 protected:
     void saveProperties(KConfigGroup &) override;
 
     void readProperties(const KConfigGroup &) override;
 
+private:
+    QString firefoxProfileName;
+    QString firefoxBinPath;
+    KProcess firefoxProcess;
+
+    bool checkIfProfileExists(const QString &profileDir, const QString &profileName);
+
     QString getCurrentActivityId();
 
-private:
-    QString firefoxProfile;
-    QString binPath;
-    KProcess p;
+    void terminateFirefox(KProcess &process);
 
+    void startFirefox(KProcess &firefoxProcess, const QString &binPath, const QString &profileName);
+
+    void createProfile(const QString &binPath, const QString &profileDir, const QString &profileName,
+                       const QString &templateProfileName);
 };
 
-MainWindow::MainWindow(const QString &binPath, const QString &profileDir, const QString &templateProfile,
-                       QString profile, QWidget *parent) : KMainWindow(parent) {
-    // args such as binPath are null when session is restored, not null on the first run
-    if (binPath != nullptr) {
-        if (profile == "") {
-            profile = getCurrentActivityId();
-        }
+// empty constructor is used when session is restored
+MainWindow::MainWindow() : KMainWindow() {
+    qDebug() << "MainWindow: Session was restored";
+}
 
-        this->binPath = binPath;
-
-        setGeometry(100, 100, 200, 100);
-        firefoxProfile = profile;
-        QStringList createProfileCommand;
-
-        // create profile with a specified profile name (or activity id) in a specified profile directory
-        createProfileCommand << binPath << "-CreateProfile" << firefoxProfile + ' ' + profileDir + '/' + firefoxProfile
-                             << "-no-remote";
-        KProcess::execute(createProfileCommand);
-
-        // run Firefox
-        p << binPath << "-p" << firefoxProfile << "-no-remote";
-        p.start();
+MainWindow::MainWindow(const QString &binPath, const QString &profileDir, const QString &templateProfileName,
+                       const QString &profileName) : KMainWindow() {
+    // if profile name was not specified, use current activity id
+    if (profileName == nullptr || profileName == "") {
+        firefoxProfileName = getCurrentActivityId();
+    } else {
+        firefoxProfileName = profileName;
     }
+
+    firefoxBinPath = binPath;
+
+    if (!checkIfProfileExists(profileDir, firefoxProfileName)) {
+        qDebug() << "Profile doesn't exist, creating it, name is: " << firefoxProfileName;
+        createProfile(firefoxBinPath, profileDir, firefoxProfileName, templateProfileName);
+    }
+
+    qDebug() << "Starting firefox";
+    startFirefox(firefoxProcess, firefoxBinPath, firefoxProfileName);
 }
 
 void MainWindow::saveProperties(KConfigGroup &conf) {
+    qDebug() << "ActivityFox is closing, saving session";
     // check if Firefox is running
-    if (p.pid() > 0) {
-        conf.writeEntry("ffProfile", firefoxProfile);
-        conf.writeEntry("binPath", binPath);
+    if (firefoxProcess.pid() > 0) {
+        conf.writeEntry("ffProfileName", firefoxProfileName);
+        conf.writeEntry("ffBinPath", firefoxBinPath);
 
-        // trying to gracefully terminate Firefox by closing the window with wmctrl
-        char pid[21];
-        KProcess closeFirefox;
-
-        sprintf(pid, "%d", p.pid());
-        std::string closeFirefoxCommand = "wmctrl -i -c `wmctrl -lp | grep ";
-        closeFirefoxCommand = closeFirefoxCommand + pid + " | cut -c -10`";
-
-        closeFirefox.setShellCommand(closeFirefoxCommand.c_str());
-        int exitcode = closeFirefox.execute();
-
-        // wmctrl failed, terminate Firefox normally
-        if (exitcode != 0) {
-            p.terminate();
-        }
-
-        // wait until Firefox is closed, at most 30 seconds, terminate if wasn't closed after that
-        if (!p.waitForFinished()) {
-            p.terminate();
-        }
+        terminateFirefox(firefoxProcess);
     } else {
-        // do not need to restore this app if Firefox was terminated
+        // do not need to restore this app if Firefox was closed by user or any other reason
+        qDebug("Firefox was closed, exiting from this app");
         exit(0);
     }
 }
 
 void MainWindow::readProperties(const KConfigGroup &conf) {
+    qDebug() << "ActivityFox is restored, starting Firefox";
     // restart Firefox
-    firefoxProfile = conf.readEntry("ffProfile", QString());
-    binPath = conf.readEntry("binPath", QString());
-    p << binPath << "-p" << firefoxProfile << "-no-remote";
-    p.start();
+    firefoxProfileName = conf.readEntry("ffProfileName", QString());
+    firefoxBinPath = conf.readEntry("ffBinPath", QString());
+    startFirefox(firefoxProcess, firefoxBinPath, firefoxProfileName);
 }
 
 QString MainWindow::getCurrentActivityId() {
@@ -106,38 +100,90 @@ QString MainWindow::getCurrentActivityId() {
     return result.arguments().at(0).value<QString>();
 }
 
-FILE * fp;
+bool MainWindow::checkIfProfileExists(const QString &profileDir, const QString &profileName) {
+    KProcess checkIfProfileExists;
 
+    QString command = "cat " + profileDir + '/' + "profiles.ini" + " | grep " + profileName;
+    qDebug() << command;
 
-// for debug purposes
+    checkIfProfileExists.setShellCommand(command);
+    return (checkIfProfileExists.execute() == 0);
+}
 
-//void myMessageOutput(QtMsgType type, const char *msg)
-//{
-//    switch (type) {
-//        case QtDebugMsg:
-//            fprintf(fp, "Debug: %s\n", msg);
-//            fflush(fp);
-//            break;
-//        case QtWarningMsg:
-//            fprintf(fp, "Warning: %s\n", msg);
-//            fflush(fp);
-//            break;
-//        case QtCriticalMsg:
-//            fprintf(fp, "Critical: %s\n", msg);
-//            fflush(fp);
-//            break;
-//        case QtFatalMsg:
-//            fprintf(fp, "Fatal: %s\n", msg);
-//            fflush(fp);
-//            abort();
-//    }
-//}
+void MainWindow::createProfile(const QString &binPath, const QString &profileDir, const QString &profileName,
+                               const QString &templateProfileName) {
+    QStringList command;
+
+    // create profile with a specified profile name (or activity id) in a specified profile directory
+    command << binPath << "-CreateProfile" << profileName + ' ' + profileDir + '/' + profileName
+            << "-no-remote";
+    qDebug() << command;
+    KProcess::execute(command);
+}
+
+void MainWindow::startFirefox(KProcess &firefoxProcess, const QString &binPath, const QString &profileName) {
+    firefoxProcess << binPath << "-p" << profileName << "-no-remote";
+    firefoxProcess.start();
+}
+
+void MainWindow::terminateFirefox(KProcess &process) {
+    char pid[21];
+    KProcess closeFirefox;
+
+    sprintf(pid, "%d", process.pid());
+    QString command = "wmctrl -i -c `wmctrl -lp | grep " + QString(pid) + " | cut -c -10";
+    qDebug() << command;
+
+    // trying to gracefully terminate Firefox by closing the window with wmctrl
+    closeFirefox.setShellCommand(command);
+    int exitcode = closeFirefox.execute();
+
+    // if wmctrl failed, terminate Firefox normally
+    if (exitcode != 0) {
+        qDebug() << "wmctrl failed";
+        process.terminate();
+    }
+
+    // wait until Firefox is closed for at most 30 seconds, terminate if it wasn't closed after that
+    if (!process.waitForFinished()) {
+        qDebug() << "Firefox hasn't finished in 30 seconds";
+        process.terminate();
+    }
+}
+
+#ifndef NDEBUG
+FILE *fp;
+#endif
+
+void myMessageOutput(QtMsgType type, const char *msg) {
+#ifndef NDEBUG
+    switch (type) {
+        case QtDebugMsg:
+            fprintf(fp, "Debug: %s\n", msg);
+            fflush(fp);
+            break;
+        case QtWarningMsg:
+            fprintf(fp, "Warning: %s\n", msg);
+            fflush(fp);
+            break;
+        case QtCriticalMsg:
+            fprintf(fp, "Critical: %s\n", msg);
+            fflush(fp);
+            break;
+        case QtFatalMsg:
+            fprintf(fp, "Fatal: %s\n", msg);
+            fflush(fp);
+            abort();
+    }
+#endif
+}
 
 int main(int argc, char *argv[]) {
-    // for debug purposes, use qDebug() << "message";
+#ifndef NDEBUG
+    fp = fopen("activityfox.log", "a");
+#endif
 
-    // fp = fopen("activityfox.log", "a");
-    // qInstallMsgHandler(myMessageOutput);
+    qInstallMsgHandler(myMessageOutput);
 
     std::string defaultProfileDir = getenv("HOME");
     defaultProfileDir = defaultProfileDir + '/' + defaultProfileDirTail;
@@ -170,8 +216,6 @@ int main(int argc, char *argv[]) {
     if (app.isSessionRestored()) {
         kRestoreMainWindows<MainWindow>();
     } else {
-        // create default application as usual
-        // example:
         MainWindow *window = new MainWindow(binPath, profileDir, templateProfile, profileName);
         window->setObjectName("ActivityFoxWindow");
         window->show();
@@ -179,7 +223,9 @@ int main(int argc, char *argv[]) {
 
     int result = app.exec();
 
+#ifndef NDEBUG
     fclose(fp);
+#endif
 
     return result;
 }
