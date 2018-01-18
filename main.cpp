@@ -4,9 +4,7 @@
 #include <KMainWindow>
 #include <KConfigGroup>
 #include <KProcess>
-#include <iostream>
 #include <QtDBus>
-#include <sstream>
 
 const char *defaultProfileDirTail = ".mozilla/firefox";
 const char *defaultBinPath = "/usr/lib/firefox/firefox";
@@ -38,6 +36,8 @@ private:
 
     void createProfile(const QString &binPath, const QString &profileDir, const QString &profileName,
                        const QString &templateProfileName);
+
+    void copyProfile(const QString &profileDir, const QString &fromName, const QString &toName);
 };
 
 // empty constructor is used when session is restored
@@ -112,9 +112,14 @@ bool MainWindow::checkIfProfileExists(const QString &profileDir, const QString &
 
 void MainWindow::createProfile(const QString &binPath, const QString &profileDir, const QString &profileName,
                                const QString &templateProfileName) {
+    // if a template profile name is specified, copy this profile into the new profile directory
+    if (templateProfileName != nullptr && templateProfileName != "") {
+        copyProfile(profileDir, templateProfileName, profileName);
+    }
+
     QStringList command;
 
-    // create profile with a specified profile name (or activity id) in a specified profile directory
+    // create a profile
     command << binPath << "-CreateProfile" << profileName + ' ' + profileDir + '/' + profileName
             << "-no-remote";
     qDebug() << command;
@@ -149,6 +154,16 @@ void MainWindow::terminateFirefox(KProcess &process) {
         qDebug() << "Firefox hasn't finished in 30 seconds";
         process.terminate();
     }
+}
+
+void MainWindow::copyProfile(const QString &profileDir, const QString &fromName, const QString &toName) {
+    QStringList command;
+
+    // make copy of a profile
+    command << "cp" << "-r" << profileDir + '/' + fromName << profileDir + '/' + toName;
+    qDebug() << command;
+
+    KProcess::execute(command);
 }
 
 #ifndef NDEBUG
@@ -195,9 +210,12 @@ int main(int argc, char *argv[]) {
                          ki18n("Copyright (c) 2012 Yuen Hoe (Jason moofang), 2018 Leonid Kalichkin (hellishnoob)"));
     KCmdLineArgs::init(argc, argv, &aboutData);
     KCmdLineOptions options;
+    options.add("b");
     options.add("bin-path <path>", ki18n("Path to Firefox executable"), defaultBinPath);
+    options.add("p");
     options.add("profile-dir <path>", ki18n("Path to Firefox profile directory"), defaultProfileDir.c_str());
-    options.add("template-profile <name>", ki18n("Template profile name"));
+    options.add("t");
+    options.add("template-profile-name <name>", ki18n("Template profile name"));
     options.add("+[profile-name]", ki18n("Firefox profile name"));
     KCmdLineArgs::addCmdLineOptions(options);
 
@@ -205,7 +223,7 @@ int main(int argc, char *argv[]) {
 
     QString binPath = args->getOption("bin-path");
     QString profileDir = args->getOption("profile-dir");
-    QString templateProfile = args->getOption("template-profile");
+    QString templateProfileName = args->getOption("template-profile-name");
     QString profileName = nullptr;
 
     if (args->count() > 0) {
@@ -216,7 +234,7 @@ int main(int argc, char *argv[]) {
     if (app.isSessionRestored()) {
         kRestoreMainWindows<MainWindow>();
     } else {
-        MainWindow *window = new MainWindow(binPath, profileDir, templateProfile, profileName);
+        MainWindow *window = new MainWindow(binPath, profileDir, templateProfileName, profileName);
         window->setObjectName("ActivityFoxWindow");
         window->show();
     }
