@@ -4,11 +4,19 @@ project (activityfox)
 find_package(KDE4 REQUIRED)
 include_directories(${KDE4_INCLUDES})
  
-set(tutorial2_SRCS 
-  main.cpp
+set(SOURCE_FILES
+        main.cpp
+        BrowserSessionManager.h
+        BrowserSessionManager.cpp
+        FirefoxSessionManager.h
+        FirefoxSessionManager.cpp
+        ChromiumSessionManager.h
+        ChromiumSessionManager.cpp
+        GoogleChromeSessionManager.h
+        GoogleChromeSessionManager.cpp
 )
  
-kde4_add_executable(activityfox ${tutorial2_SRCS})
+kde4_add_executable(activityfox ${SOURCE_FILES})
 target_link_libraries(activityfox ${KDE4_KDEUI_LIBS})
 
 set_property(TARGET activityfox PROPERTY CXX_STANDARD 11)
