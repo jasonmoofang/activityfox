@@ -152,7 +152,7 @@ private:
 
 KCmdLineArgs *parseCommandLineArguments(int argc, char **argv) {
     static KAboutData aboutData("activityfox", nullptr,
-                                ki18n("ActivityFox"), "0.1",
+                                ki18n("ActivityFox"), "0.2",
                                 ki18n("Help Firefox and Chromium-based browsers work with KDE activities."),
                                 KAboutData::License_GPL,
                                 ki18n("Copyright (c) 2012 Yuen Hoe (Jason moofang), 2018 Leonid Kalichkin (hellishnoob)"));
