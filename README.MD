@@ -88,4 +88,4 @@ That should give you the 'activityfox' executable in the build folder.
 ## License
 
 GPL v3
-Copyright 2012 Yuen Hoe (Jason moofang), 2018 Leonid Kalichkin (hellishnoob)
+Copyright [2012 Yuen Hoe (Jason moofang)](http://yuenhoe.com/blog/2012/08/associating-firefox-profiles-with-kde-activities/), 2018 Leonid Kalichkin (hellishnoob)
