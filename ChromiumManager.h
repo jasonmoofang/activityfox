@@ -1,14 +1,14 @@
-#ifndef ACTIVITYFOX_CHROMIUMSESSIONMANAGER_H
-#define ACTIVITYFOX_CHROMIUMSESSIONMANAGER_H
+#ifndef ACTIVITYFOX_CHROMIUMMANAGER_H
+#define ACTIVITYFOX_CHROMIUMMANAGER_H
 
 #include <dirent.h>
-#include "BrowserSessionManager.h"
+#include "BrowserManager.h"
 
-class ChromiumSessionManager : public BrowserSessionManager {
+class ChromiumManager : public BrowserManager {
 public:
-    ChromiumSessionManager(QStringList allArguments, const QString &binPath, const QString &profileDir,
-                           const QString &templateProfileName,
-                           const QString &profileName);
+    ChromiumManager(const QString &startUpActivityId, const QString &binPath, const QString &profileDir,
+                    const QString &templateProfileName,
+                    const QString &profileName);
 
 private:
 
@@ -28,4 +28,4 @@ private:
 };
 
 
-#endif //ACTIVITYFOX_CHROMIUMSESSIONMANAGER_H
+#endif //ACTIVITYFOX_CHROMIUMMANAGER_H

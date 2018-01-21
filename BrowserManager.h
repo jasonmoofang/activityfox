@@ -1,5 +1,5 @@
-#ifndef ACTIVITYFOX_BROWSERSESSIONMANAGER_H
-#define ACTIVITYFOX_BROWSERSESSIONMANAGER_H
+#ifndef ACTIVITYFOX_BROWSERMANAGER_H
+#define ACTIVITYFOX_BROWSERMANAGER_H
 
 #ifdef NDEBUG
 #define QT_NO_DEBUG_OUTPUT
@@ -14,33 +14,37 @@
 #include <QSessionManager>
 #include <QtDBus>
 
-class BrowserSessionManager : public KApplication {
+class BrowserManager {
 public:
-    BrowserSessionManager(QStringList allArguments, const QString &binPath, const QString &profileDir,
-                          const QString &templateProfileName, const QString &profileName);
+    BrowserManager(const QString &startUpActivityId, const QString &binPath, const QString &profileDir,
+                   const QString &templateProfileName, const QString &profileName);
 
-    void commitData(QSessionManager &sm) override;
+    virtual ~BrowserManager() = default;
 
-    virtual void init();
+    void init();
+
+    void onSaveProperties();
+
+    enum Browser {
+        CHROMIUM, GOOGLE_CHROME, FIREFOX
+    };
 
 protected:
 
 
 private:
-    QStringList restartArguments;
-    QString browserProfileName;
-    QString browserBinPath;
-    QString browserProfileDir;
-    QString browserTemplateProfileName;
-    KProcess browserProcess;
-
-    QString getCurrentActivityId();
+    QString startUpActivityId;
+    QString profileName;
+    QString binPath;
+    QString profileDir;
+    QString templateProfileName;
+    KProcess process;
 
     virtual bool checkIfProfileExists(const QString &profileDir, const QString &profileName) = 0;
 
     virtual void closeBrowser(KProcess &process);
 
-    virtual void startBrowser(KProcess &browserProcess, const QString &binPath, const QString &profileDir,
+    virtual void startBrowser(KProcess &process, const QString &binPath, const QString &profileDir,
                               const QString &profileName) = 0;
 
     virtual void createProfile(const QString &binPath, const QString &profileDir, const QString &profileName,
@@ -55,4 +59,4 @@ private:
 };
 
 
-#endif //ACTIVITYFOX_BROWSERSESSIONMANAGER_H
+#endif //ACTIVITYFOX_BROWSERMANAGER_H

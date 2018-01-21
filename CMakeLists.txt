@@ -8,14 +8,14 @@ include_directories(${KDE4_INCLUDES})
  
 set(SOURCE_FILES
         main.cpp
-        BrowserSessionManager.h
-        BrowserSessionManager.cpp
-        FirefoxSessionManager.h
-        FirefoxSessionManager.cpp
-        ChromiumSessionManager.h
-        ChromiumSessionManager.cpp
-        GoogleChromeSessionManager.h
-        GoogleChromeSessionManager.cpp
+        BrowserManager.h
+        BrowserManager.cpp
+        FirefoxManager.h
+        FirefoxManager.cpp
+        ChromiumManager.h
+        ChromiumManager.cpp
+        GoogleChromeManager.h
+        GoogleChromeManager.cpp
 )
  
 kde4_add_executable(activityfox ${SOURCE_FILES})

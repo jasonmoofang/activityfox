@@ -1,13 +1,13 @@
-#ifndef ACTIVITYFOX_FIREFOXSESSIONMANAGER_H
-#define ACTIVITYFOX_FIREFOXSESSIONMANAGER_H
+#ifndef ACTIVITYFOX_FIREFOXMANAGER_H
+#define ACTIVITYFOX_FIREFOXMANAGER_H
 
-#include "BrowserSessionManager.h"
+#include "BrowserManager.h"
 
-class FirefoxSessionManager : public BrowserSessionManager {
+class FirefoxManager : public BrowserManager {
 public:
-    FirefoxSessionManager(QStringList allArguments, const QString &binPath, const QString &profileDir,
-                          const QString &templateProfileName,
-                          const QString &profileName);
+    FirefoxManager(const QString &startUpActivityId, const QString &binPath, const QString &profileDir,
+                   const QString &templateProfileName,
+                   const QString &profileName);
 
 private:
 
@@ -27,4 +27,4 @@ private:
 };
 
 
-#endif //ACTIVITYFOX_FIREFOXSESSIONMANAGER_H
+#endif //ACTIVITYFOX_FIREFOXMANAGER_H
