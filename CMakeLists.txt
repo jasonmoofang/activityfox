@@ -7,15 +7,15 @@ find_package(KDE4 REQUIRED)
 include_directories(${KDE4_INCLUDES})
  
 set(SOURCE_FILES
-        main.cpp
-        BrowserManager.h
-        BrowserManager.cpp
-        FirefoxManager.h
-        FirefoxManager.cpp
-        ChromiumManager.h
-        ChromiumManager.cpp
-        GoogleChromeManager.h
-        GoogleChromeManager.cpp
+        src/main.cpp
+        src/BrowserManager.h
+        src/BrowserManager.cpp
+        src/FirefoxManager.h
+        src/FirefoxManager.cpp
+        src/ChromiumManager.h
+        src/ChromiumManager.cpp
+        src/GoogleChromeManager.h
+        src/GoogleChromeManager.cpp
 )
  
 kde4_add_executable(activityfox ${SOURCE_FILES})
