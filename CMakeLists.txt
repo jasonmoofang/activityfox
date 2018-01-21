@@ -1,6 +1,8 @@
 cmake_minimum_required(VERSION 3.1)
 project (activityfox)
- 
+
+cmake_policy(SET CMP0059 NEW)
+
 find_package(KDE4 REQUIRED)
 include_directories(${KDE4_INCLUDES})
  

@@ -5,7 +5,8 @@
 
 class GoogleChromeSessionManager : public ChromiumSessionManager {
 public:
-    GoogleChromeSessionManager(QStringList allArguments, const QString &binPath, const QString &profileDir, const QString &templateProfileName,
+    GoogleChromeSessionManager(QStringList allArguments, const QString &binPath, const QString &profileDir,
+                               const QString &templateProfileName,
                                const QString &profileName);
 
 private:

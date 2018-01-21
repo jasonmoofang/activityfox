@@ -1,7 +1,10 @@
+#ifdef NDEBUG
+#define QT_NO_DEBUG_OUTPUT
+#endif
+
 #include <KApplication>
 #include <KAboutData>
 #include <KCmdLineArgs>
-#include <unistd.h>
 #include <QWidget>
 
 #include "BrowserSessionManager.h"
@@ -10,9 +13,10 @@
 #include "GoogleChromeSessionManager.h"
 
 #ifndef NDEBUG
-FILE *fp;
 
-static KCmdLineArgs *parseCommandLineArguments(int argc, char **argv);
+#include <unistd.h>
+
+FILE *fp;
 
 void myMessageOutput(QtMsgType type, const char *msg) {
     switch (type) {
@@ -34,7 +38,10 @@ void myMessageOutput(QtMsgType type, const char *msg) {
             abort();
     }
 }
+
 #endif
+
+KCmdLineArgs *parseCommandLineArguments(int argc, char **argv);
 
 int main(int argc, char *argv[]) {
 #ifndef NDEBUG
@@ -56,7 +63,7 @@ int main(int argc, char *argv[]) {
         profileName = args->arg(0);
     }
 
-    BrowserSessionManager* sm;
+    BrowserSessionManager *sm;
     QStringList allArguments = args->allArguments();
     allArguments.removeFirst();
 
@@ -69,7 +76,7 @@ int main(int argc, char *argv[]) {
     }
 
     // having a visible window is necessary for session management
-    QWidget* window = new QWidget();
+    QWidget *window = new QWidget();
     window->show();
 
     sm->init();
@@ -85,10 +92,10 @@ int main(int argc, char *argv[]) {
 
 KCmdLineArgs *parseCommandLineArguments(int argc, char **argv) {
     static KAboutData aboutData("activityfox", nullptr,
-                         ki18n("ActivityFox"), "0.1",
-                         ki18n("Help Firefox and Chromium-based browsers work with KDE activities."),
-                         KAboutData::License_GPL,
-                         ki18n("Copyright (c) 2012 Yuen Hoe (Jason moofang), 2018 Leonid Kalichkin (hellishnoob)"));
+                                ki18n("ActivityFox"), "0.1",
+                                ki18n("Help Firefox and Chromium-based browsers work with KDE activities."),
+                                KAboutData::License_GPL,
+                                ki18n("Copyright (c) 2012 Yuen Hoe (Jason moofang), 2018 Leonid Kalichkin (hellishnoob)"));
 
     KCmdLineArgs::init(argc, argv, &aboutData);
 

@@ -1,9 +1,8 @@
 #include "BrowserSessionManager.h"
 
-#include <QtDBus>
-
-BrowserSessionManager::BrowserSessionManager(const QStringList allArguments, const QString &binPath, const QString &profileDir,const QString &templateProfileName,
-                       const QString &profileName) : KApplication() {
+BrowserSessionManager::BrowserSessionManager(const QStringList allArguments, const QString &binPath,
+                                             const QString &profileDir, const QString &templateProfileName,
+                                             const QString &profileName) : KApplication() {
     restartArguments = allArguments;
     browserBinPath = binPath;
     browserProfileDir = profileDir;

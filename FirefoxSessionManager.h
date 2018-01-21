@@ -5,14 +5,16 @@
 
 class FirefoxSessionManager : public BrowserSessionManager {
 public:
-    FirefoxSessionManager(QStringList allArguments, const QString &binPath, const QString &profileDir, const QString &templateProfileName,
+    FirefoxSessionManager(QStringList allArguments, const QString &binPath, const QString &profileDir,
+                          const QString &templateProfileName,
                           const QString &profileName);
 
 private:
 
     bool checkIfProfileExists(const QString &profileDir, const QString &profileName) override;
 
-    void startBrowser(KProcess &browserProcess, const QString &binPath, const QString &profileDir, const QString &profileName) override;
+    void startBrowser(KProcess &browserProcess, const QString &binPath, const QString &profileDir,
+                      const QString &profileName) override;
 
     void createProfile(const QString &binPath, const QString &profileDir, const QString &profileName,
                        const QString &templateProfileName) override;

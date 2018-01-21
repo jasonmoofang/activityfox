@@ -1,19 +1,21 @@
 #ifndef ACTIVITYFOX_CHROMIUMSESSIONMANAGER_H
 #define ACTIVITYFOX_CHROMIUMSESSIONMANAGER_H
 
-#include <KCmdLineArgs>
+#include <dirent.h>
 #include "BrowserSessionManager.h"
 
 class ChromiumSessionManager : public BrowserSessionManager {
 public:
-    ChromiumSessionManager(QStringList allArguments, const QString &binPath, const QString &profileDir, const QString &templateProfileName,
+    ChromiumSessionManager(QStringList allArguments, const QString &binPath, const QString &profileDir,
+                           const QString &templateProfileName,
                            const QString &profileName);
 
 private:
 
     bool checkIfProfileExists(const QString &profileDir, const QString &profileName) override;
 
-    void startBrowser(KProcess &browserProcess, const QString &binPath, const QString &profileDir, const QString &profileName) override;
+    void startBrowser(KProcess &browserProcess, const QString &binPath, const QString &profileDir,
+                      const QString &profileName) override;
 
     void createProfile(const QString &binPath, const QString &profileDir, const QString &profileName,
                        const QString &templateProfileName) override;

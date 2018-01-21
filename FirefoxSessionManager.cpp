@@ -11,7 +11,7 @@ bool FirefoxSessionManager::checkIfProfileExists(const QString &profileDir, cons
 }
 
 void FirefoxSessionManager::createProfile(const QString &binPath, const QString &profileDir, const QString &profileName,
-                                 const QString &templateProfileName) {
+                                          const QString &templateProfileName) {
     // if a template profile name is specified, copy this profile into the new profile directory
     if (templateProfileName != nullptr && templateProfileName != "") {
         copyProfile(profileDir, templateProfileName, profileName);
@@ -26,7 +26,8 @@ void FirefoxSessionManager::createProfile(const QString &binPath, const QString 
     KProcess::execute(command);
 }
 
-void FirefoxSessionManager::startBrowser(KProcess &browserProcess, const QString &binPath, const QString &, const QString &profileName) {
+void FirefoxSessionManager::startBrowser(KProcess &browserProcess, const QString &binPath, const QString &,
+                                         const QString &profileName) {
     qDebug() << "FirefoxSessionManager::startBrowser was called";
     browserProcess << binPath << "-p" << profileName << "-no-remote";
     qDebug() << browserProcess.program();
@@ -44,18 +45,21 @@ void FirefoxSessionManager::copyProfile(const QString &profileDir, const QString
 }
 
 QString FirefoxSessionManager::getDefaultProfileDir() {
-    static const char* defaultProfileDirTail = ".mozilla/firefox";
+    static const char *defaultProfileDirTail = ".mozilla/firefox";
 
     std::string defaultProfileDir = getenv("HOME");
     return (defaultProfileDir + '/' + defaultProfileDirTail).c_str();
 }
 
 QString FirefoxSessionManager::getDefaultBinPath() {
-    static const char* defaultBinPath = "/usr/lib/firefox/firefox";
+    static const char *defaultBinPath = "/usr/lib/firefox/firefox";
 
     return defaultBinPath;
 }
 
-FirefoxSessionManager::FirefoxSessionManager(QStringList allArguments, const QString &binPath, const QString &profileDir, const QString &templateProfileName,
-                                             const QString &profileName) : BrowserSessionManager(allArguments, binPath, profileDir, templateProfileName,
-                                                                      profileName) {}
+FirefoxSessionManager::FirefoxSessionManager(QStringList allArguments, const QString &binPath,
+                                             const QString &profileDir, const QString &templateProfileName,
+                                             const QString &profileName) : BrowserSessionManager(allArguments, binPath,
+                                                                                                 profileDir,
+                                                                                                 templateProfileName,
+                                                                                                 profileName) {}
