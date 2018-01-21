@@ -104,6 +104,8 @@ protected:
         profileName = conf.readEntry("profileName");
         templateProfileName = conf.readEntry("templateProfileName");
 
+        qDebug() << browser << startUpActivityId << binPath << profileDir << templateProfileName << profileName;
+
         if (browser == BrowserManager::CHROMIUM) {
             bm = new ChromiumManager(startUpActivityId, binPath, profileDir, templateProfileName, profileName);
         } else if (browser == BrowserManager::GOOGLE_CHROME) {
@@ -128,6 +130,8 @@ protected:
         conf.writeEntry("templateProfileName", templateProfileName);
         conf.writeEntry("profileName", profileName);
 
+        qDebug() << browser << startUpActivityId << binPath << profileDir << templateProfileName << profileName;
+
         static bool firstCall = true;
         if (firstCall) {
             firstCall = false;
@@ -137,6 +141,7 @@ protected:
                 bm->onSaveProperties();
             }
         }
+        qDebug() << "returning from saveProperties";
     }
 
 private:
@@ -206,9 +211,9 @@ int main(int argc, char *argv[]) {
         browser = BrowserManager::FIREFOX;
     }
 
-    QString startUpActivityId = getCurrentActivityId();
-
     KApplication app;
+
+    QString startUpActivityId = getCurrentActivityId();
 
     if (app.isSessionRestored()) {
         kRestoreMainWindows<MainWindow>();
